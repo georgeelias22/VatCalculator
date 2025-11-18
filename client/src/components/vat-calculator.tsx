@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calculator, PoundSterling, Percent, Plus, Minus, RefreshCw, Copy, Moon, Sun } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/hooks/use-theme";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import { type Calculation, defaultVATRates } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +18,6 @@ export function VATCalculator() {
   const [inputError, setInputError] = useState<string>("");
   const [calculation, setCalculation] = useState<Calculation | null>(null);
   const [theme, toggleTheme] = useTheme();
-  const [recentCalculations, setRecentCalculations] = useLocalStorage<Calculation[]>("vat-calculations", []);
   const { toast } = useToast();
 
   const isCustomRate = vatRate === -1;
@@ -134,19 +132,6 @@ export function VATCalculator() {
       });
     }
   };
-
-  const saveCalculation = () => {
-    if (!calculation) return;
-
-    const updatedHistory = [calculation, ...recentCalculations.slice(0, 9)];
-    setRecentCalculations(updatedHistory);
-  };
-
-  useEffect(() => {
-    if (calculation) {
-      saveCalculation();
-    }
-  }, [calculation]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-GB', {
@@ -310,7 +295,7 @@ export function VATCalculator() {
             )}
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-2 gap-3">
               <Button
                 variant="secondary"
                 onClick={clearCalculation}
@@ -330,31 +315,6 @@ export function VATCalculator() {
                 Copy Result
               </Button>
             </div>
-
-            {/* Calculation History */}
-            {recentCalculations.length > 0 && (
-              <div className="pt-6 border-t border-border">
-                <h4 className="text-sm font-medium text-foreground mb-3" data-testid="title-history">
-                  Recent Calculations
-                </h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {recentCalculations.map((calc, index) => (
-                    <div
-                      key={calc.timestamp}
-                      className="flex justify-between items-center text-xs bg-accent rounded px-3 py-2"
-                      data-testid={`history-item-${index}`}
-                    >
-                      <span className="text-muted-foreground">
-                        {formatCurrency(calc.originalAmount)} {calc.calculationType === "add" ? "+" : "-"} {calc.vatRate}% VAT
-                      </span>
-                      <span className="font-mono">
-                        {formatCurrency(calc.finalAmount)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
 
